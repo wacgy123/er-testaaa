@@ -42,11 +42,18 @@ public class GlobalExceptionHandler {
         return Result.failed("000D1","数据库操作异常",(Object) null);
     }
 
-    @ExceptionHandler({FeignTraceException.class})
+    @ExceptionHandler({Exception.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Result handleFeignTraceException(FeignTraceException ex){
-        log.error("Feign调用异常");
-        return ex.getMessage().contains(",提供方内部错误")?Result.failed("000S1",ex.getMessge());
+    public Result handleFeignTraceException(Exception ex){
+        if (ex instanceof BaseException){
+            BaseException baseException=(BaseException) ex;
+            if (baseException.getCode()==null){
+                return Result.failed(baseException.getMsg());
+            }
+            return Result.failed(baseException.getCode(),baseException.getMsg());
+        }else{
+            return Result.failed(ex.getMessage());
+        }
     }
 
     @ExceptionHandler({Throwable.class})
